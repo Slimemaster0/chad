@@ -10,7 +10,7 @@ edition = "2021"
 llvm-sys = { version = "140", features = ["prefer-dynamic"] }
 
 [[bin]]
-name = "µsc"
+name = "chadc"
 path = "compiler/main.rs"
 
 [profile.release]
