@@ -1,9 +1,9 @@
 use crate::format::*;
 
 pub enum Token {
-    VarDecl(String, VarMetadata),
-    Name(String),
-    ParenOpen, // (
+    Pub,
+    Mut,
+    VarDecl(String), Name(String), ParenOpen, // (
     ParenClose, // )
     Assign, // =
     SqParenOpen, // [
@@ -12,17 +12,13 @@ pub enum Token {
     CurlyClose, // }
     Comma, // ,
     String(String),
-    Number,
+    Number(i128),
     Float,
-    FunCall(String),
-    VarCall(String),
-    ModuleImport(String),
+    Refrence, // &
+    RawPtr, // *
+    ModuleImport,
     Semicolon, // ;
-}
-
-pub struct VarMetadata {
-    pub is_public: bool,
-    pub is_func: bool
+    BinOP(char), // + - * /
 }
 
 pub fn lexer(input: &String) -> Vec<Token> {
@@ -32,29 +28,62 @@ pub fn lexer(input: &String) -> Vec<Token> {
         let chars: Vec<char> = input.chars().collect();
 
         let mut current_word: String = String::new();
+        let mut is_comment = false; // comments
+        let mut is_string = false; // Strings
+        let mut is_escaped = false; // Escape chars in strings
         for i in 0..chars.len() {
-            if chars[i] != ' '
-                && chars[i] != '('
-                && chars[i] != ')'
-                && chars[i] != '['
-                && chars[i] != ']'
-                && chars[i] != '{'
-                && chars[i] != '}'
-                && chars[i] != ';' 
-                && chars[i] != '\n' {
-                current_word.push(chars[i]);
-            } else {
-                match chars[i] {
-                    ' ' => { tokens.push(tokenizer(current_word)); current_word = String::new(), }
-                    _ => panic!("{RED}ERR:{RESET_FORMAT} The end char: '{BOLD}{}{RESET_FORMAT}' is not implemented!", chars[i]),
+            if is_comment {
+                if chars[i] == '\n' {
+                    is_comment = false;
                 }
+                continue;
             }
+
+            let mut next_token: Result<Token, bool> = Result::Err(false);
+            
+
+            match chars[i] {
+                '(' => {
+                    next_token = Ok(Token::ParenOpen);
+                }
+                ')' => {
+                    next_token = Ok(Token::ParenClose);
+                }
+                '[' => {
+                    next_token = Ok(Token::SqParenOpen);
+                }
+                ']' => {
+                    next_token = Ok(Token::SqParenClose);
+                }
+                '{' => {
+                    next_token = Ok(Token::CurlyOpen);
+                }
+                '}' => {
+                    next_token = Ok(Token::CurlyClose);
+                }
+                '&' => {
+                    next_token = Ok(Token::Refrence);
+                }
+                ';' => {
+                    next_token = Ok(Token::Semicolon);
+                }
+                '+' => {
+                    next_token = Ok(Token::BinOP('+'));
+                }
+                '-' => {
+                    if current_word.len() != 0 {
+                        next_token = Ok(Token::BinOP('-'));
+                    }
+                }
+                ',' => {
+                    next_token = Ok(Token::Comma);
+                }
+                _ => {}
+            }
+
+            current_word.push(chars[i]);
         }
     }
 
     return tokens;
-}
-
-pub fn tokenizer(input: &String) -> Token {
-    
 }
