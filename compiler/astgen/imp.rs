@@ -1,5 +1,7 @@
-use crate::lexer::{ Token, Type };
+use crate::lexer::Token;
 use crate::format::*;
+
+use inkwell::types::{ BasicTypeEnum, IntType };
 
 use crate::astgen::*;
 
@@ -28,19 +30,19 @@ pub fn generate_AST_wrapped(tokens: Vec<Token>, bin_type: BinType) -> AST {
             match tokens[i] {
                 Token::Number(int) => {}
                 Token::BinOP(op) => {
-                    let i1: VarInput<i128>;
-                    let i2: VarInput<i128>;
+                    let i1: VarInput;
+                    let i2: VarInput;
                     
                     match tokens[i-1] {
                         Token::Number(int) => {
-                            i1 = VarInput::Literal(int);
+                            //i1 = ;
                         }
                         _ => panic!("{RED}Err:{RESET_FORMAT} binary operators must be give to numbers eg: {BOLD}69 {op} 420;{RESET_FORMAT}"),
                     }
 
                     match tokens[i+1] {
                         Token::Number(int) => {
-                            i2 = VarInput::Literal(int);
+                            //i2 = VarInput::Literal(int);
                         }
                         _ => panic!("{RED}Err:{RESET_FORMAT} binary operators must be give to numbers eg: {BOLD}69 {op} 420;{RESET_FORMAT}"),
                     }
@@ -52,7 +54,7 @@ pub fn generate_AST_wrapped(tokens: Vec<Token>, bin_type: BinType) -> AST {
                         _ => panic!("BinOP char must be: '+', '-', '*', '/'")
                     }
                 }
-                _ => println!("{RED}Err:{RESET_FORMAT} Not inplemented!"),
+                _ => println!("{RED}Err:{RESET_FORMAT} Not implemented!"),
             }
         }
     }

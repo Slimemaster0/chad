@@ -2,10 +2,12 @@
 mod var_input;
 mod imp;
 
-use crate::lexer::{ Token, Type };
+use crate::lexer::Token;
+use crate::{ Type, Value };
 use crate::astgen::imp::generate_AST_wrapped;
 
-// {{{
+use std::convert::From;
+
 pub struct AST {
     pub bin_type: BinType,
     pub files: Vec<SrcFile>,
@@ -39,14 +41,20 @@ pub enum Instruction {
     Add(i128, i128),
 }
 
-pub enum VarInput<t> {
-    Literal(t),
+pub enum VarInput {
+    Literal(Value),
     Variable(String),
-    Function() // Not implemented yet
+    Function(Type) // Not implemented yet
 }
-// }}}
+
+pub struct BinOP {
+    pub operator: char,
+    pub left: VarInput<>,
+    pub right: VarInput<>
+}
 
 /// Parses tokens and returns an AST wrapped
 pub fn generate_AST(tokens: Vec<Token>, bin_type: BinType) -> AST {
     generate_AST_wrapped(tokens, bin_type)
 }
+

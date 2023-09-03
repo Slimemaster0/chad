@@ -1,10 +1,5 @@
 use crate::astgen::VarInput;
+use crate::lexer::Token;
 
-
-pub enum VarInputWrapper {
-    Wrap(VarInput),
-}
-
-pub fn parse_var_input(tokens: &Vec<Token>, i: &usize) -> VarInputWrapper {
-    
-}
+//pub fn parse_var_input<T>(tokens: &Vec<Token>, i: &usize) -> VarInput<T> {
+//}

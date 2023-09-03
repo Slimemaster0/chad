@@ -2,12 +2,16 @@ mod tokenizer;
 mod imp;
 
 use crate::lexer::imp::lexer_wrapped;
+use crate::astgen::VarInput;
+use crate::{ Arguments, Type, Int, Float };
+use std::fmt;
 
 enum State {
     Default,
     VarDecl
 }
 
+#[derive(PartialEq, Debug)]
 pub enum Token {
     Pub,
     Mut,
@@ -25,8 +29,8 @@ pub enum Token {
        */
     Comma, // ,
     String(String),
-    Number(i128),
-    Float(f64),
+    Number(Int),
+    Float(Float),
     //    Refrence, // &   comming soon™
     RawPtr, // *
     ModuleImport,
@@ -35,18 +39,13 @@ pub enum Token {
     FunCall,
 }
 
-pub enum Type {
-    Int,
-    Bool,
-    Float,
-    Char,
-    String,
-    Vec,
-    Struct,
-    Enum,
+/// Breaks a string into tokens and verify that they conform to the syntax
+pub fn lexer(input: &String, args: &Arguments) -> Vec<Token> {
+    lexer_wrapped(input, args)
 }
 
-/// Breaks a string into tokens and verify that they conform to the syntax
-pub fn lexer(input: &String) -> Vec<Token> {
-    lexer_wrapped(input)
+impl fmt::Display for Token {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{:?}", self)
+    }
 }

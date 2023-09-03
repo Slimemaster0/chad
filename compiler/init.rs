@@ -2,31 +2,31 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use crate::format::*;
-use crate::lexer::{ lexer, Token, Type };
+use crate::lexer::{ lexer, Token };
+use crate::{ Arguments, Type };
 
 /// The main function exept all the imports arn't in the main.rs file.
 pub fn init() {
-    let mut debug_lexer = false;
-    let mut files: Vec<String> = Vec::new();
+    let mut args: Arguments = Arguments::new();
     { // Argument parsing
-        let args: Vec<String> = env::args().collect();
-        for i in 0..args.len() {
-            if args[i].len() == 0 {
+        let args_raw: Vec<String> = env::args().collect();
+        for i in 0..args_raw.len() {
+            if args_raw[i].len() == 0 {
                 continue;
             }
-            if args[i].len() == 1 {
-                files.push(args[i].clone());
+            if args_raw[i].len() == 1 {
+                args.files.push(args_raw[i].clone());
                 continue;
             }
-            if args[i].chars().nth(0).expect("no char at 0") == '-' {
-                if args[i].chars().nth(1).expect("no char at 1") == '-' {
-                    match args[i].as_str() {
-                        "--debug-lexer" => debug_lexer = true,
+            if args_raw[i].chars().nth(0).expect("no char at 0") == '-' {
+                if args_raw[i].chars().nth(1).expect("no char at 1") == '-' {
+                    match args_raw[i].as_str() {
+                        "--debug-lexer" => args.debug_lexer = true,
 
-                        _ => panic!("Invalid argument: {}", args[i]),
+                        _ => panic!("Invalid argument: {}", args_raw[i]),
                     }
                 } else {
-                    let chars: Vec<char> = args[i].chars().into_iter().collect();
+                    let chars: Vec<char> = args_raw[i].chars().into_iter().collect();
                     for j in 1..chars.len() {
                         match chars[j] {
 
@@ -36,44 +36,20 @@ pub fn init() {
                 }
                 continue;
             }
-            files.push(args[i].clone());
+            args.files.push(args_raw[i].clone());
         }
     }
 
-    let mut file: File = File::open(files[1].as_str()).expect("{RED}Err:{RESET_FORMAT} Cannot open file!");
+    let mut file: File = File::open(args.files[1].as_str()).expect("{RED}Err:{RESET_FORMAT} Cannot open file!");
     let mut content: String = String::new();
     file.read_to_string(&mut content).expect("{RED}Err:{RESET_FORMAT} Cannot read file!");
 
-    let tokens = lexer(&content);
+    let tokens = lexer(&content, &args);
 
     // Prints each token to stdout
-    if debug_lexer {
+    if args.debug_lexer {
         for i in 0..tokens.len() {
-            match &tokens[i] {
-                Token::VarDecl => println!("VarDecl"),
-                Token::Name(s) => println!("Name({s})"),
-                Token::Assign => println!("Assign"),
-                Token::FunCall => println!("FunCall"),
-                Token::Number(n) => println!("Number({n})"),
-                Token::Semicolon => println!("Semicolon"),
-                Token::ParenOpen => println!("ParenOpen"),
-                Token::ParenClose => println!("ParenClose"),
-                Token::SqParenOpen => println!("SqParenOpen"),
-                Token::SqParenClose => println!("SqParenClose"),
-                Token::DataType(t) => {
-                    match t {
-                        Type::Int => println!("Type::Int"),
-                        Type::Float => println!("Type::Float"),
-                        Type::Bool => println!("Type::Bool"),
-                        Type::Char => println!("Type::Char"),
-                        Type::String => println!("Type::String"),
-                        Type::Vec => println!("Type::Vec"),
-                        Type::Struct => println!("Type::Struct"),
-                        Type::Enum => println!("Type::Enum")
-                    }
-                }
-                _ => {}
-            }
+            println!("{}", tokens[i]);
         }
     }
 }
