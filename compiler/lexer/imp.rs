@@ -6,6 +6,111 @@ use crate::Arguments;
 use crate::string_is_numeric;
 
 pub fn lexer_wrapped(input: &String, args: &Arguments) -> Vec<Token> {
+    fn parse_char( // {{{
+        args: &Arguments,
+        chars: &Vec<char>,
+        i: &usize,
+        tokens: &mut Vec<Token>,
+        current_stmt: &mut Vec<Token>,
+        current_word: &mut String,
+        is_comment: &mut bool,
+        is_string: &mut bool,
+        is_escaped: &mut bool,
+        char_y: &mut usize,
+        char_x: &mut usize,
+        ) {
+        match chars[i.clone()] {
+            '(' => {
+                push_n_clear_buff(current_stmt, current_word, args);
+                match &current_stmt[current_stmt.len() -1] {
+                    Token::Name(n) => {
+                        let fn_name = n.clone();
+                        current_stmt.pop();
+                        current_stmt.push(Token::FunCall);
+                        current_stmt.push(Token::Name(fn_name));
+                    }
+                    _ => {}
+                }
+                current_stmt.push(Token::ParenOpen);
+                return;
+            }
+            ')' => {
+                push_n_clear_buff(current_stmt, current_word, args);
+                current_stmt.push(Token::ParenClose);
+                return;
+            }
+            /* Comming soon™
+               '[' => {
+               next_token = Ok(Token::SqParenOpen);
+               }
+               ']' => {
+               next_token = Ok(Token::SqParenClose);
+               }
+               '{' => {
+               next_token = Ok(Token::CurlyOpen);
+               }
+               '}' => {
+               next_token = Ok(Token::CurlyClose);
+               }
+               '&' => {
+               next_token = Ok(Token::Refrence);
+               }
+               */
+            ';' => {
+                push_n_clear_buff(current_stmt, current_word, args);
+
+                // Parses the current statement
+                {
+                    let mut skip: usize = 0;
+                    for j in 0..current_stmt.len() {
+                        if skip > 0 {
+                            skip-=1;
+                            continue;
+                        }
+
+                        match current_stmt[j] {
+                            _ => {}
+                        }
+                    }
+                }
+
+                current_stmt.push(Token::Semicolon);
+                tokens.append(current_stmt);
+
+                let mut empty_vec: Vec<Token> = Vec::new();
+                *current_stmt = Vec::new();
+                return;
+            }
+            // {{{ Binary operators
+            '=' =>  {
+                current_stmt.push(Token::Assign);
+                return;
+            }
+            '+' => {
+                push_n_clear_buff(current_stmt, current_word, args);
+
+                current_stmt.push(Token::BinOP('+'));
+                return;
+            }
+            '-' => {
+                push_n_clear_buff(current_stmt, current_word, args);
+
+                current_stmt.push(Token::BinOP('-'));
+                return;
+            }
+            // }}}
+            ',' => {
+                push_n_clear_buff(current_stmt, current_word, args);
+                current_stmt.push(Token::Comma);
+                return;
+            }
+            ' ' => { push_n_clear_buff(current_stmt, current_word, args); return; }
+            '\n' => { push_n_clear_buff(current_stmt, current_word, args); *char_y+=1; *char_x = 0 as usize; return; }
+            _ => {}
+        } // }}}
+
+    current_word.push(chars[*i]);
+    } // }}}
     let mut tokens: Vec<Token> = Vec::new();
 
     { // Tokenization
@@ -64,113 +169,8 @@ pub fn lexer_wrapped(input: &String, args: &Arguments) -> Vec<Token> {
     }
 
     return tokens;
-    } // }}}
+} // }}}
 
-fn parse_char(
-    args: &Arguments,
-    chars: &Vec<char>,
-    i: &usize,
-    tokens: &mut Vec<Token>,
-    current_stmt: &mut Vec<Token>,
-    current_word: &mut String,
-    is_comment: &mut bool,
-    is_string: &mut bool,
-    is_escaped: &mut bool,
-    char_y: &mut usize,
-    char_x: &mut usize,
-    ) {
-    match chars[i.clone()] {
-        '(' => {
-            push_n_clear_buff(current_stmt, current_word, args);
-            match &current_stmt[current_stmt.len() -1] {
-                Token::Name(n) => {
-                    let fn_name = n.clone();
-                    current_stmt.pop();
-                    current_stmt.push(Token::FunCall);
-                    current_stmt.push(Token::Name(fn_name));
-                }
-                _ => {}
-            }
-            current_stmt.push(Token::ParenOpen);
-            return;
-        }
-        ')' => {
-            push_n_clear_buff(current_stmt, current_word, args);
-            current_stmt.push(Token::ParenClose);
-            return;
-        }
-        /* Comming soon™
-           '[' => {
-           next_token = Ok(Token::SqParenOpen);
-           }
-           ']' => {
-           next_token = Ok(Token::SqParenClose);
-           }
-           '{' => {
-           next_token = Ok(Token::CurlyOpen);
-           }
-           '}' => {
-           next_token = Ok(Token::CurlyClose);
-           }
-           '&' => {
-           next_token = Ok(Token::Refrence);
-           }
-           */
-        ';' => {
-            push_n_clear_buff(current_stmt, current_word, args);
-
-            // Parses the current statement
-            {
-                let mut skip: usize = 0;
-                for j in 0..current_stmt.len() {
-                    if skip > 0 {
-                        skip-=1;
-                        continue;
-                    }
-
-                    match current_stmt[j] {
-                        _ => {}
-                    }
-                }
-            }
-
-            current_stmt.push(Token::Semicolon);
-            tokens.append(current_stmt);
-
-            let mut empty_vec: Vec<Token> = Vec::new();
-            *current_stmt = Vec::new();
-            return;
-        }
-        // {{{ Binary operators
-        '=' =>  {
-            current_stmt.push(Token::Assign);
-            return;
-        }
-        '+' => {
-            push_n_clear_buff(current_stmt, current_word, args);
-
-            current_stmt.push(Token::BinOP('+'));
-            return;
-        }
-        '-' => {
-            push_n_clear_buff(current_stmt, current_word, args);
-
-            current_stmt.push(Token::BinOP('-'));
-            return;
-        }
-        // }}}
-        ',' => {
-            push_n_clear_buff(current_stmt, current_word, args);
-            current_stmt.push(Token::Comma);
-            return;
-        }
-        ' ' => { push_n_clear_buff(current_stmt, current_word, args); return; }
-        '\n' => { push_n_clear_buff(current_stmt, current_word, args); *char_y+=1; *char_x = 0 as usize; return; }
-        _ => {}
-    } // }}}
-
-current_word.push(chars[*i]);
-}
 
 /// Parses the text buffer, appends the result to the tokens vector then clears the text buffer
 fn push_n_clear_buff(tokens: &mut Vec<Token>, txt_buff: &mut String, args: &Arguments) {

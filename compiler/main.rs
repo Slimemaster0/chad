@@ -1,6 +1,6 @@
 mod lexer;
 mod format;
-mod astgen;
+mod ast;
 mod init;
 
 use crate::init::init;
@@ -41,6 +41,7 @@ pub enum Value {
     Vec(Vec<Value>),
     Struct(String, Vec<Value>, Vec<String>),
     Enum(String, usize, Vec<Value>),
+    Void,
 }
 
 #[derive(PartialEq, Debug, Clone)]
